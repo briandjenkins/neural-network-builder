@@ -142,7 +142,7 @@ public class MainController {
     private void buildModel(ActionEvent evt) {
 
         String dataPath = "/home/brianj/Pictures/images";
-        System.out.println("");
+        
         int seed = 123;
         int batchSize = 1000;
         int numEpochs = 1;
