@@ -134,6 +134,11 @@ public class MainController {
         return new Pair<DataSetIterator, DataSetIterator>(trainIter, testIter);
     }
 
+    /**
+     * CNN Algorithm.
+     * 
+     * @param evt 
+     */
     private void buildModel(ActionEvent evt) {
 
         String dataPath = "/home/brianj/Pictures/images";
