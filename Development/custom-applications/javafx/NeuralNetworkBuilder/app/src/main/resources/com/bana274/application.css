@@ -1,0 +1,266 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : Mar 23, 2022, 9:48:44 AM
+    Author     : brianj
+*/
+@font-face {
+    src: url("Ubuntu-Regular.ttf");
+}
+
+*{
+    -octane-growth-gray: rgb(50, 62,72);
+    -octane-mid-gray: rgb(91, 101, 109);
+    -octane-light-gray: rgb(132, 139, 145);
+    -octane-pale-gray: rgb(214, 216, 218);
+    -octane-orange: rgb(255, 108, 14);
+}
+
+.root {
+    -menu-item-text-fill: white;
+    -custom-background-color: #d5640c;
+    -fx-faint-focus-color: rgba(255, 133, 84, 0.3);
+    -custom-focus-color: rgba(255, 133, 84, 0.4);
+    -default-action-button-background: rgba(58, 66, 79, .8);
+    -action-bar-color: -octane-mid-gray;
+    -fx-default-text-fill: white;
+    -fx-main-menu-linear-gradient:linear-gradient(to bottom, rgba(52,61,70, .99) 1% , rgba(79,91,102, .95) 34% , rgba(101,115,126, .9) 65% , rgba(167,173,186, .85) 94%, rgba(192,197,206, .8) 100% );
+}
+
+/* Default CSS */
+.label {
+    -fx-font-family: "Ubuntu Regular";
+}
+
+.text-field {
+    -fx-font-family: "Ubuntu Regular";
+}
+
+.text {
+    -fx-font-family: "Ubuntu Regular";
+}
+
+.radio-button {
+    -fx-font-family: "Ubuntu Regular";
+}
+
+.check-box {
+    -fx-font-family: "Ubuntu Regular";
+}
+
+/*
+* Default button
+*/
+.default-button {
+    -fx-border-color: transparent;
+    -fx-border-radius: 0;
+    -fx-border-width: 0;
+    -fx-background-insets: 0, 0, 0;
+    -fx-background-radius: 5, 4, 3;
+    -fx-background-color: rgba(255, 153, 0, .6), rgb(179, 179, 179), rgb(64, 64, 64);
+    -fx-text-fill: white;
+}
+
+.default-button:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(255, 153, 0, .6), 10, 0, 0, 0);
+    -fx-background-insets: 0, 1, 1;
+    -fx-background-radius: 5, 5, 5;
+}
+
+.default-button:pressed {
+    -fx-background-color: rgba(255, 153, 0, .7), derive(rgb(179, 179, 179),20%), derive(rgb(64, 64, 64),20%);
+    -fx-text-fill: derive(-menu-item-text-fill, -20%);
+}
+
+/* Round buttons */
+.round-action-button {
+    -fx-background-radius: 100;
+    -fx-background-color: -default-action-button-background;
+    -fx-border-radius: 100;
+    -fx-border-width: 1.5;
+    -fx-border-color:white;
+    -fx-min-width: 35px;
+    -fx-min-height: 35px;
+    -fx-max-width: 35px;
+    -fx-max-height: 35px;
+}
+
+.round-action-button:hover {
+    -fx-border-color: gray;
+    -fx-cursor:hand;
+}
+
+.round-action-button:pressed {
+    -fx-border-color: gray;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,1.0), 10, 0, 0, 0);
+}
+
+.round-action-button-small {
+    -fx-background-radius: 180;
+    -fx-background-color: -default-action-button-background;
+    -fx-border-radius: 180;
+    -fx-border-width: 1.0;
+    -fx-border-color: gray;
+    -fx-min-width: 25px;
+    -fx-min-height: 25px;
+    -fx-max-width: 25px;
+    -fx-max-height: 25px;
+}
+
+.round-action-button-small:hover {
+    -fx-border-color: white;
+    -fx-cursor: hand;
+}
+
+.round-action-button-small:pressed {
+    -fx-border-color: gray;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,1.0), 10, 0, 0, 0);
+}
+
+.round-utilties-avatar-image {
+    -fx-image: url('controller/dave_beck.png');
+    -fx-cursor:hand;  
+}
+
+.round-utilities-avatar-background {
+    -fx-background-radius: 21;
+    -fx-min-width: 36px;
+    -fx-min-height: 36px;
+    -fx-max-width: 36px;
+    -fx-max-height: 36px;
+    -fx-border-radius: 21;
+    -fx-border-width: 2;
+    -fx-border-color: rgb(201,201,201);
+    -fx-background-color: orange;
+}
+
+/*
+Side menu CSS
+*/
+.main-menu-container {
+    -fx-background-color: -action-bar-color;
+    -fx-min-width: 250px;
+    -fx-pref-width: 250px;
+    -fx-max-width: 250px;
+    -fx-border-width: .5px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,1.0), 10, 0, 0, 0);
+}
+
+.main-menu-container .main-menu-header {
+    -fx-min-height: 100px;
+    -fx-pref-height: 100px;
+    -fx-max-height: 100;
+    -fx-padding: 0 5 0 0;
+    -fx-background-image: url("octane.png");
+    -fx-background-repeat: stretch;
+    -fx-background-size: 195 55;
+    -fx-background-position: center center;
+}
+
+.main-menu-container .menu-button {
+    -fx-border-color: transparent;
+    -fx-border-radius: 3;
+    -fx-border-width: 3;
+    -fx-background-insets: 0, 0, 0;
+    -fx-background-radius: 5, 4, 3;
+    -fx-background-color: transparent;
+    -fx-text-fill: -menu-item-text-fill;
+    -fx-cursor: hand;
+}
+
+.main-menu-container .menu-button:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(255, 153, 0, .6), 10, 0, 0, 0);
+    -fx-background-insets: 0, 1, 1;
+    -fx-background-radius: 5, 5, 5;
+}
+
+.main-menu-container .menu-button:pressed {
+    -fx-background-color: rgba(255, 153, 0, .7), derive(rgb(179, 179, 179),20%), derive(rgb(64, 64, 64),20%);
+    -fx-text-fill: derive(-menu-item-text-fill, -20%);
+}
+
+.menu-item {
+    -fx-max-width: infinity;
+    -fx-text-fill: -menu-item-text-fill;
+    -fx-font-size: 21px;
+    -fx-alignment: center-left;
+    -fx-padding: 3 5 1 5;
+    -fx-cursor: hand;
+}
+
+.menu-item:hover {
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+    -fx-border-color: orange;
+    -fx-border-insets: -1;
+}
+
+/*
+ * Action bar css.
+*/
+.action-bar {
+    -fx-pref-height: 45px;
+    -fx-max-height: 45px;
+    -fx-min-height: 45px;
+    -fx-background-color: -action-bar-color;
+    -fx-padding: 0px 0px 0px 5px;
+}
+
+.action-bar .label {
+    -fx-text-fill: -fx-default-text-fill;
+    -fx-font-size: 16px;
+}
+
+.action-bar-small {
+    -fx-pref-height: 30px;
+    -fx-max-height: 30px;
+    -fx-min-height: 30px;
+    -fx-background-color: -action-bar-color;
+}
+
+.action-bar-small .label {
+    -fx-text-fill: -fx-default-text-fill;
+}
+
+/* Running Pane*/
+.transparent-pane-container {
+    -fx-background-color: rgba(0, 0, 0, 0.9);
+}
+
+/* ComboBox */
+.combo-box-popup .list-cell:selected,.combo-box-popup .list-cell:hover {    
+    -fx-background-color: -octane-orange;    
+    -fx-text-fill: white;
+}
+
+/* Icons */
+.menu-close-button  {
+    -fx-icon-size: 18;
+    -fx-icon-code: fa-close;
+    -fx-icon-color: white;
+}
+
+/* Alert dialog */
+.dialog-pane{
+    -fx-background-color: black;
+    -fx-border-color:black;
+    -fx-border-width:2.0px;
+}
+
+.dialog-pane .button {
+    -fx-background-color:-default-action-button-background;
+    -fx-text-fill:white;
+    -fx-wrap-text: true;
+    -fx-cursor:hand;
+}
+
+.dialog-pane .button:hover {
+    /*  -fx-background-color:white;*/
+    /*-fx-text-fill:black;*/
+    /*-fx-font-weight:bold;*/
+    -fx-background-color:-default-action-button-background;
+    -fx-effect: dropshadow(three-pass-box, rgba(255, 153, 0, .6), 10, 0, 0, 0);
+}
+
