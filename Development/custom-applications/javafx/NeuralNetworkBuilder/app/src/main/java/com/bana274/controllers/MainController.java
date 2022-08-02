@@ -136,13 +136,13 @@ public class MainController {
 
     /**
      * CNN Algorithm.
-     * 
-     * @param evt 
+     *
+     * @param evt
      */
     private void buildModel(ActionEvent evt) {
 
         String dataPath = "/home/brianj/Pictures/images";
-        
+
         int seed = 123;
         int batchSize = 1000;
         int numEpochs = 1;
@@ -238,8 +238,9 @@ public class MainController {
 
         model.fit(iterators.getKey(), N_EPOCHS);
 
-        Evaluation evaluation = model.evaluate(iterators.getValue());
+        org.nd4j.evaluation.classification.Evaluation evaluation = model.evaluate(iterators.getValue());
         System.out.println(evaluation.stats());
+        System.out.println(evaluation.confusionToString());
         try {
             // Save model
             model.save(new File("gender_cnn_model.zip"));
@@ -253,13 +254,13 @@ public class MainController {
         final int HEIGHT = 32;
         final int WIDTH = 32;
         final int CHANNELS = 3;
-        
+
         image = ImageIO.read(new File("/home/brianj/Pictures/images/female/131437.jpg.jpg"));
 
         String modelFile = "gender_cnn_model.zip";
         MultiLayerNetwork classifier = MultiLayerNetwork.load(new File(modelFile), false);
-       
-        ImageLoader loader = new ImageLoader(WIDTH, HEIGHT, CHANNELS);        
+
+        ImageLoader loader = new ImageLoader(WIDTH, HEIGHT, CHANNELS);
         INDArray input = loader.asMatrix(image).reshape(1, 3, 32, 32);
         INDArray output = classifier.output(input);
 
@@ -267,6 +268,11 @@ public class MainController {
         return output;
     }
 
+    /**
+     * Application related methods.
+     * 
+     * @return 
+     */
     public EventHandler<WindowEvent> getWindowCloseEventHandler() {
         return (WindowEvent event) -> {
             closeRequestHandler();
