@@ -12,45 +12,40 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     -fx-faint-focus-color: #039ED322;
 }
 
-TextField, PasswordField {
-    -fx-pref-height: 30px
+.main-footer-container-vbox {
+    -fx-padding: 10 10 10 10;
+    -fx-spacing: 20;
 }
 
-.login-container {
-    -fx-pref-height: 300px;
-    -fx-pref-width: 500px;
-    -fx-max-height: 300px;
-    -fx-max-width: 500px;
-    -fx-min_height: 300px;
-    -fx-min_width: 500px;    
-    -fx-background-radius: 15px;
-    -fx-background-color: #2c3230;
-
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 10, 0, 0, 0);
+.main-grid-container-vbox {
+    -fx-font-size: 14px;
+    -fx-padding: 10 10 10 10;
+    -fx-spacing: 10;
 }
 
-.login-container-header-container {
-    -fx-min-height: 50px;
-}
-
-.login-container-footer-container {
-    -fx-min-height: 75px;
-}
-
-.login-container-title-label {
-    -fx-font-size: 28px;
+.main-header-label {
     -fx-text-fill: white;
+    -fx-font-size: 32px;
 }
 
-.login-fields-container {
-    -fx-spacing: 25px;
+.elapsed-time-label {
+    -fx-font-size: 24px;
+    -fx-text-fill: white;
+    -fx-min-width: 225px;
+    -fx-alignment: center;
 }
 
-.login-fields-container TextField, PasswordField {
-    -fx-max-width: 250px;
+.image-view {
+    -fx-scale-x: 2;
+    -fx-scale-y: 2;
 }
 
-
+.finished-font-icon {
+    -fx-icon-color: rgba(3,252,73,.99);
+    -fx-icon-code: "far-check-circle";
+    -fx-icon-size: 22px;
+    -fx-cursor: hand;
+}
 
 
 
