@@ -74,7 +74,7 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
  */
 public class MainController {
     
-    public static final int ELAPSED_TIME_INTERVAL = 2000;
+    public static final int ELAPSED_TIME_INTERVAL = 1000;
 
     private final ResourceBundle mainBundle = ResourceBundle.getBundle("com.bana274.main");
     private Timer timer;
@@ -109,6 +109,9 @@ public class MainController {
         initBindings();
     }
 
+    /**
+     * Initialize the form's controls with default values.
+     */
     private void initControls() {
         epochsTextField.setTextFormatter(new TextFormatter<Integer>(new IntegerStringConverter(), 0, customIntegerFilter()));
         epochsTextField.setText("100");
