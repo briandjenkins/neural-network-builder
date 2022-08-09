@@ -221,56 +221,6 @@ public class MainController {
         timer.cancel();
     }
 
-    /**
-     * CNN Algorithm.
-     *
-     * @param evt
-     */
-//    private void buildModel(ActionEvent evt) {
-//
-//        String dataPath = "/home/brianj/Pictures/images";
-//
-//        int seed = 123;
-//        int batchSize = 1000;
-//        int numEpochs = 1;
-//
-//        int height = 100;
-//        int width = 80;
-//        int channels = 3;
-//        int numInput = height * width;
-//
-//        int numLabels = 2;
-//
-//        Pair<DataSetIterator, DataSetIterator> iterators = createDataIterators();
-//
-//        MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder()
-//                .seed(seed)
-//                .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-//                .list()
-//                .layer(0, new DenseLayer.Builder()
-//                        .activation(Activation.SIGMOID)
-//                        .nIn(numInput)
-//                        .nOut(1000)
-//                        .build())
-//                .layer(1, new OutputLayer.Builder(LossFunctions.LossFunction.MSE)
-//                        .activation(Activation.SIGMOID)
-//                        .nIn(1000)
-//                        .nOut(2)
-//                        .build())
-//                .setInputType(InputType.convolutional(height, width, 3))
-//                .build();
-//
-//        System.out.println(configuration.toJson());
-//
-//        MultiLayerNetwork model = new MultiLayerNetwork(configuration);
-//        model.init();
-//        model.setListeners(new ScoreIterationListener(100));
-//
-//        model.fit(iterators.getKey(), numEpochs);
-//
-//        Evaluation evaluation = model.evaluate(iterators.getValue());
-//        System.out.println(evaluation.stats());
-//    }
     private void buildCNNModel(ActionEvent evt) {
         // TODO: Create "running" state property.
         finishedIconVisible.set(false);
