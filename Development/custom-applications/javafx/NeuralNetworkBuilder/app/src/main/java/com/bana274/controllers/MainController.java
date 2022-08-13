@@ -48,6 +48,7 @@ import org.datavec.api.split.InputSplit;
 import org.datavec.image.loader.ImageLoader;
 import org.datavec.image.loader.NativeImageLoader;
 import org.datavec.image.recordreader.ImageRecordReader;
+import org.deeplearning4j.core.storage.StatsStorage;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -59,6 +60,9 @@ import org.deeplearning4j.nn.conf.layers.SubsamplingLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+import org.deeplearning4j.ui.api.UIServer;
+import org.deeplearning4j.ui.model.stats.StatsListener;
+import org.deeplearning4j.ui.model.storage.FileStatsStorage;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -287,14 +291,14 @@ public class MainController {
                  * URL: http://localhost:9000/train/overview
                  */
                 //Initialize the user interface backend
-                //UIServer uiServer = UIServer.getInstance();
+                UIServer uiServer = UIServer.getInstance();
                 //Configure where the network information (gradients, score vs. time etc) is to be stored. Here: store in memory.
                 //StatsStorage statsStorage = new InMemoryStatsStorage();         //Alternative: new FileStatsStorage(File), for saving and loading later
-                //StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
-                //int listenerFrequency = 1;
-                //model.setListeners(new StatsListener(statsStorage, listenerFrequency));
+                StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+                int listenerFrequency = 1;
+                model.setListeners(new StatsListener(statsStorage, listenerFrequency));
                 //Attach the StatsStorage instance to the UI: this allows the contents of the StatsStorage to be visualized
-                //uiServer.attach(statsStorage);
+                uiServer.attach(statsStorage);
                 model.fit(iterators.getKey(), N_EPOCHS);
 
                 org.nd4j.evaluation.classification.Evaluation evaluation = model.evaluate(iterators.getValue());
@@ -321,82 +325,6 @@ public class MainController {
 
     }
 
-//    private void buildCNNModel(ActionEvent evt) {
-//        final int HEIGHT = 32;
-//        final int WIDTH = 32;
-//        final int CHANNELS = 3;
-//        final int N_OUTCOMES = 2;
-//        final int N_EPOCHS = Integer.parseInt(epochsTextField.getText());//11
-//
-//        Pair<DataSetIterator, DataSetIterator> iterators = createDataIterators();
-//
-//        MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder()
-//                .seed(123)
-//                .l2(0.0005) // ridge regression value
-//                .updater(new Nesterovs(0.006, 0.9))
-//                .weightInit(WeightInit.XAVIER)
-//                .list()
-//                .layer(new ConvolutionLayer.Builder(3, 3)
-//                        .nIn(CHANNELS)
-//                        .stride(1, 1)
-//                        .nOut(50)
-//                        .activation(Activation.RELU)
-//                        .build())
-//                .layer(new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
-//                        .kernelSize(2, 2)
-//                        .stride(2, 2)
-//                        .build())
-//                .layer(new ConvolutionLayer.Builder(3, 3)
-//                        .stride(1, 1) // nIn need not specified in later layers
-//                        .nOut(50)
-//                        .activation(Activation.RELU)
-//                        .build())
-//                .layer(new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
-//                        .kernelSize(2, 2)
-//                        .stride(2, 2)
-//                        .build())
-//                .layer(new DenseLayer.Builder().activation(Activation.RELU)
-//                        .nOut(500)
-//                        .build())
-//                .layer(new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
-//                        .nOut(N_OUTCOMES)
-//                        .activation(Activation.SOFTMAX)
-//                        .build())
-//                .setInputType(InputType.convolutionalFlat(HEIGHT, WIDTH, CHANNELS)) // InputType.convolutional for normal image
-//                .build();
-//
-//        System.out.println(configuration.toJson());
-//
-//        MultiLayerNetwork model = new MultiLayerNetwork(configuration);
-//        model.init();
-//        model.setListeners(new ScoreIterationListener(100));
-//
-//        /**
-//         * Visualization
-//         *
-//         * URL: http://localhost:9000/train/overview
-//         */
-//        //Initialize the user interface backend
-//        //    UIServer uiServer = UIServer.getInstance();
-//        //Configure where the network information (gradients, score vs. time etc) is to be stored. Here: store in memory.
-//        //StatsStorage statsStorage = new InMemoryStatsStorage();         //Alternative: new FileStatsStorage(File), for saving and loading later
-//        //    StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
-//        //    int listenerFrequency = 1;
-//        //    model.setListeners(new StatsListener(statsStorage, listenerFrequency));
-//        //Attach the StatsStorage instance to the UI: this allows the contents of the StatsStorage to be visualized
-//        //   uiServer.attach(statsStorage);
-//        model.fit(iterators.getKey(), N_EPOCHS);
-//
-//        org.nd4j.evaluation.classification.Evaluation evaluation = model.evaluate(iterators.getValue());
-//        System.out.println(evaluation.stats());
-//        System.out.println(evaluation.confusionToString());
-//        try {
-//            // Save model
-//            model.save(new File("gender_cnn_model.zip"));
-//        } catch (IOException ex) {
-//            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//    }
     public static INDArray classify(BufferedImage image) throws IOException {
 
         final int HEIGHT = 32;

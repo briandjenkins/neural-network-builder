@@ -23,7 +23,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     -custom-background-color: #119Cd5;
     -fx-faint-focus-color: rgba(255, 133, 84, 0.3);
     -custom-focus-color: rgba(255, 133, 84, 0.4);
-    -default-action-button-background: rgba(58, 66, 79, .8);
+    -default-action-button-background: rgba(139, 141, 148, .9);
     -action-bar-color: -octane-mid-gray;
     -fx-default-text-fill: white;
     -fx-main-menu-linear-gradient:linear-gradient(to bottom, rgba(52,61,70, .99) 1% , rgba(79,91,102, .95) 34% , rgba(101,115,126, .9) 65% , rgba(167,173,186, .85) 94%, rgba(192,197,206, .8) 100% );
@@ -31,7 +31,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
 
 /* Default CSS */
 .label {
-    -fx-font-family: "Ubuntu Regular";
+    -fx-font-family: "Ubuntu Regular";   
 }
 
 .text-field {

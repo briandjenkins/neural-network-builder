@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
@@ -30,12 +31,26 @@
             </BorderPane>
             <BorderPane prefHeight="600.0" prefWidth="900.0">
                <bottom>
-                  <VBox alignment="CENTER" prefHeight="35.0" spacing="15.0" styleClass="main-footer-container-vbox" BorderPane.alignment="CENTER">
+                  <HBox alignment="CENTER" spacing="20.0" styleClass="main-footer-container-hbox" BorderPane.alignment="CENTER">
                      <children>
-                        <Button fx:id="classifyButton" minWidth="129.0" mnemonicParsing="false" text="Classify" />
-                        <Button fx:id="createModelButton" mnemonicParsing="false" text="Create CNN Model" />
+                        <Button fx:id="classifyButton" minWidth="129.0" mnemonicParsing="false" styleClass="round-action-button">
+                           <graphic>
+                              <FontIcon styleClass="classify-font-icon" />
+                           </graphic>
+                           <tooltip>
+                              <Tooltip text="Classify" />
+                           </tooltip>
+                        </Button>
+                        <Button fx:id="createModelButton" mnemonicParsing="false" styleClass="round-action-button">
+                           <graphic>
+                              <FontIcon styleClass="train-font-icon" />
+                           </graphic>
+                           <tooltip>
+                              <Tooltip text="Train" />
+                           </tooltip>
+                        </Button>
                      </children>
-                  </VBox>
+                  </HBox>
                </bottom>
                <center>
                   <GridPane alignment="CENTER" BorderPane.alignment="CENTER">

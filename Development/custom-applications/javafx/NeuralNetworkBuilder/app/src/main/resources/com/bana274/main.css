@@ -12,7 +12,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     -fx-faint-focus-color: #039ED322;
 }
 
-.main-footer-container-vbox {
+.main-footer-container-hbox {
     -fx-padding: 10 10 10 10;
     -fx-spacing: 20;
 }
@@ -35,6 +35,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     -fx-alignment: center;
 }
 
+.round-action-button {
+    -fx-min-width: 38px;
+    -fx-min-height: 38px;
+    -fx-max-width: 38px;
+    -fx-max-height: 38px;
+}
+
 .image-view {
     -fx-scale-x: 2;
     -fx-scale-y: 2;
@@ -46,6 +53,21 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     -fx-icon-size: 22px;
     -fx-cursor: hand;
 }
+
+.classify-font-icon {
+    -fx-icon-color: rgba(255,255,255,.99);
+    -fx-icon-code: "fas-restroom";
+    -fx-icon-size: 22px;
+    -fx-cursor: hand;
+}
+
+.train-font-icon {
+    -fx-icon-color: rgba(255,255,255,.99);
+    -fx-icon-code: "fas-book-open";
+    -fx-icon-size: 22px;
+    -fx-cursor: hand;
+}
+
 
 
 
