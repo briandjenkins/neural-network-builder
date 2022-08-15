@@ -80,7 +80,7 @@ import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 /**
- * Version: 1.0.0
+ * Version: 1.1.0
  *
  * @author brianj
  */
