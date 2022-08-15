@@ -8,7 +8,6 @@ import com.bana274.Main;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Random;
 import java.util.ResourceBundle;
@@ -17,13 +16,18 @@ import java.util.TimerTask;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.animation.FadeTransition;
+import javafx.animation.SequentialTransition;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -34,8 +38,11 @@ import javafx.scene.control.TextFormatter.Change;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Paint;
 import javafx.stage.WindowEvent;
+import javafx.util.Duration;
 import javafx.util.Pair;
 import javafx.util.converter.DoubleStringConverter;
 import javafx.util.converter.IntegerStringConverter;
@@ -86,10 +93,16 @@ public class MainController {
     private Instant start;
     
     private BooleanProperty finishedIconVisible = new SimpleBooleanProperty(false);
+    private ObjectBinding<Node> frontNode;
 
     @FXML
     private AnchorPane viewContainerAnchorPane;
-
+    @FXML
+    private AnchorPane overlayAnchorPane;
+    @FXML
+    private BorderPane imageBackgroundBorderPane;
+    @FXML
+    private StackPane mainStackPane;
     @FXML
     private Label elapsedTimeLabel;
     @FXML
@@ -102,6 +115,8 @@ public class MainController {
     private Button classifyButton;
     @FXML
     private Button createModelButton;
+    @FXML
+    private Button closeOverlayButton;
     @FXML
     private ImageView mainBackgroundImageView;
     @FXML
@@ -118,6 +133,8 @@ public class MainController {
      * Initialize the form's controls with default values.
      */
     private void initControls() {
+        // Move overlay off-screen.
+        installAnimation(mainStackPane);
         epochsTextField.setTextFormatter(new TextFormatter<Integer>(new IntegerStringConverter(), 0, customIntegerFilter()));
         epochsTextField.setText("100");
         learningRateTextField.setTextFormatter(new TextFormatter<Double>(new DoubleStringConverter(), 0.0, customDoubleFilter()));
@@ -136,10 +153,30 @@ public class MainController {
             }
         });
         createModelButton.setOnAction(this::buildCNNModel);
+        closeOverlayButton.setOnAction(this::closeOverlay);
     }
     
     private void initBindings() {
         elapsedTimeFontIcon.visibleProperty().bind(finishedIconVisible);
+    }
+    
+    private void installAnimation(StackPane root) {
+        frontNode = Bindings.valueAt(root.getChildren(), Bindings.size(root.getChildren()).subtract(1));
+        frontNode.addListener((obs, oldNode, newNode) -> {
+            SequentialTransition fadeOutIn = new SequentialTransition();
+            if (oldNode != null) {
+                FadeTransition fadeOut = new FadeTransition(Duration.millis(500), oldNode);
+                fadeOut.setToValue(0);
+                fadeOutIn.getChildren().add(fadeOut);
+            }
+            if (newNode != null) {
+                FadeTransition fadeIn = new FadeTransition(Duration.millis(500), newNode);
+                fadeIn.setFromValue(0);
+                fadeIn.setToValue(1);
+                fadeOutIn.getChildren().add(fadeIn);
+            }
+            fadeOutIn.play();
+        });
     }
 
     private UnaryOperator<Change> customIntegerFilter() {
@@ -220,7 +257,7 @@ public class MainController {
 
     private void updateClock() {
         Instant finish = Instant.now();
-        long timeElapsed = Duration.between(start, finish).toMillis();
+        long timeElapsed = java.time.Duration.between(start, finish).toMillis();
         String elapsedTime = DurationFormatUtils.formatDuration(timeElapsed, "HH:mm:ss");
         elapsedTimeLabel.setText(elapsedTime);
     }
@@ -228,8 +265,13 @@ public class MainController {
     private void stopClock() {
         timer.cancel();
     }
+    
+    private void closeOverlay(ActionEvent evt) {
+        overlayAnchorPane.toBack();
+    }
 
     private void buildCNNModel(ActionEvent evt) {
+        overlayAnchorPane.toFront();
         // TODO: Create "running" state property.
         finishedIconVisible.set(false);
         startClock();
@@ -358,9 +400,7 @@ public class MainController {
         int numInput = height * width;
 
         int numLabels = 2;
-        
-                
-
+                       
         File parentDir = new File(dataPath);
         FileSplit filesInDir = new FileSplit(parentDir, NativeImageLoader.ALLOWED_FORMATS);
         ParentPathLabelGenerator labelMaker = new ParentPathLabelGenerator();

@@ -10,6 +10,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     -fx-background-color: -custom-background-color;
     -fx-focus-color:  -custom-focus-color;
     -fx-faint-focus-color: #039ED322;
+    -custom-overlay-color: rgba(0,0,0,.9);
 }
 
 .main-footer-container-hbox {
@@ -29,7 +30,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
 }
 
 .elapsed-time-label {
-    -fx-font-size: 24px;
+    -fx-font-size: 48px;
     -fx-text-fill: white;
     -fx-min-width: 225px;
     -fx-alignment: center;
@@ -66,6 +67,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     -fx-icon-code: "fas-book-open";
     -fx-icon-size: 22px;
     -fx-cursor: hand;
+}
+
+.image-background-borderpane {
+    -fx-background-color: -custom-background-color;
+}
+
+.progress-overlay {
+    -fx-background-color: -custom-overlay-color;
 }
 
 
