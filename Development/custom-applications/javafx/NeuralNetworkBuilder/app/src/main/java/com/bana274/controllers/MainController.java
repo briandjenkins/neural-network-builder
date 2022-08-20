@@ -22,7 +22,9 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -38,9 +40,9 @@ import javafx.scene.control.TextFormatter.Change;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Paint;
+import javafx.stage.FileChooser;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import javafx.util.Pair;
@@ -81,18 +83,24 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 /**
  * Version: 1.1.0
+ * Last Update: 2022-08-19
+ * 
  *
  * @author brianj
  */
 public class MainController {
-    
+
     public static final int ELAPSED_TIME_INTERVAL = 1000;
 
     private final ResourceBundle mainBundle = ResourceBundle.getBundle("com.bana274.main");
+    private final FileChooser fileChooser = new FileChooser();
     private Timer timer;
     private Instant start;
-    
+    private UIServer uiServer;
+    private StatsStorage statsStorage;
+
     private BooleanProperty finishedIconVisible = new SimpleBooleanProperty(false);
+    private DoubleProperty accuracyText = new SimpleDoubleProperty();
     private ObjectBinding<Node> frontNode;
 
     @FXML
@@ -100,11 +108,11 @@ public class MainController {
     @FXML
     private AnchorPane overlayAnchorPane;
     @FXML
-    private BorderPane imageBackgroundBorderPane;
-    @FXML
     private StackPane mainStackPane;
     @FXML
     private Label elapsedTimeLabel;
+    @FXML
+    private Label accuracyLabel;
     @FXML
     private TextField epochsTextField;
     @FXML
@@ -130,11 +138,12 @@ public class MainController {
     }
 
     /**
-     * Initialize the form's controls with default values.
+     * Initialize form controls with default values.
      */
     private void initControls() {
         // Move overlay off-screen.
         installAnimation(mainStackPane);
+
         epochsTextField.setTextFormatter(new TextFormatter<Integer>(new IntegerStringConverter(), 0, customIntegerFilter()));
         epochsTextField.setText("100");
         learningRateTextField.setTextFormatter(new TextFormatter<Double>(new DoubleStringConverter(), 0.0, customDoubleFilter()));
@@ -145,35 +154,33 @@ public class MainController {
     }
 
     private void initActions() {
-        classifyButton.setOnAction(evt -> {
-            try {
-                classify(null);
-            } catch (IOException ex) {
-                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        });
+        classifyButton.setOnAction(this::selectImageAndClassify);
         createModelButton.setOnAction(this::buildCNNModel);
         closeOverlayButton.setOnAction(this::closeOverlay);
     }
-    
+
     private void initBindings() {
         elapsedTimeFontIcon.visibleProperty().bind(finishedIconVisible);
+        accuracyLabel.textProperty().bind(Bindings.format("%s", accuracyText));
     }
-    
+
     private void installAnimation(StackPane root) {
         frontNode = Bindings.valueAt(root.getChildren(), Bindings.size(root.getChildren()).subtract(1));
         frontNode.addListener((obs, oldNode, newNode) -> {
             SequentialTransition fadeOutIn = new SequentialTransition();
             if (oldNode != null) {
-                FadeTransition fadeOut = new FadeTransition(Duration.millis(500), oldNode);
+                FadeTransition fadeOut = new FadeTransition(Duration.millis(1000), oldNode);
                 fadeOut.setToValue(0);
                 fadeOutIn.getChildren().add(fadeOut);
+                System.out.println("Fade out");
+
             }
             if (newNode != null) {
-                FadeTransition fadeIn = new FadeTransition(Duration.millis(500), newNode);
+                FadeTransition fadeIn = new FadeTransition(Duration.millis(1000), newNode);
                 fadeIn.setFromValue(0);
                 fadeIn.setToValue(1);
                 fadeOutIn.getChildren().add(fadeIn);
+                System.out.println("Fade in");
             }
             fadeOutIn.play();
         });
@@ -265,16 +272,41 @@ public class MainController {
     private void stopClock() {
         timer.cancel();
     }
-    
+
     private void closeOverlay(ActionEvent evt) {
         overlayAnchorPane.toBack();
     }
 
+    private void selectImageAndClassify(ActionEvent evt) {
+        try {
+            File selectedFile = fileChooser.showOpenDialog(mainStackPane.getScene().getWindow());
+            if (selectedFile != null) {
+                classify(null);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    /**
+     * CNN Model Related Methods
+     * 
+     */
+    
+    /**
+     * Configure and train the model.
+     * 
+     * @param evt 
+     */
     private void buildCNNModel(ActionEvent evt) {
         overlayAnchorPane.toFront();
         // TODO: Create "running" state property.
         finishedIconVisible.set(false);
         startClock();
+
+        if (uiServer != null) {
+            uiServer.detach(statsStorage);
+        }
 
         final int HEIGHT = 32;
         final int WIDTH = 32;
@@ -282,48 +314,49 @@ public class MainController {
         final int N_OUTCOMES = 2;
         final int N_EPOCHS = Integer.parseInt(epochsTextField.getText());//11
 
-        Pair<DataSetIterator, DataSetIterator> iterators = createDataIterators();
-
-        MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder()
-                .seed(123)
-                .l2(0.0005) // ridge regression value
-                .updater(new Nesterovs(Double.parseDouble(learningRateTextField.getText()), 0.9)) //0.006              
-                .weightInit(WeightInit.XAVIER)
-                .list()
-                .layer(new ConvolutionLayer.Builder(3, 3)
-                        .nIn(CHANNELS)
-                        .stride(1, 1)
-                        .nOut(50)
-                        .activation(Activation.RELU)
-                        .build())
-                .layer(new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
-                        .kernelSize(2, 2)
-                        .stride(2, 2)
-                        .build())
-                .layer(new ConvolutionLayer.Builder(3, 3)
-                        .stride(1, 1) // nIn need not specified in later layers
-                        .nOut(50)
-                        .activation(Activation.RELU)
-                        .build())
-                .layer(new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
-                        .kernelSize(2, 2)
-                        .stride(2, 2)
-                        .build())
-                .layer(new DenseLayer.Builder().activation(Activation.RELU)
-                        .nOut(500)
-                        .build())
-                .layer(new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
-                        .nOut(N_OUTCOMES)
-                        .activation(Activation.SOFTMAX)
-                        .build())
-                .setInputType(InputType.convolutionalFlat(HEIGHT, WIDTH, CHANNELS)) // InputType.convolutional for normal image
-                .build();
-
-        System.out.println(configuration.toJson());
-
         Task<org.nd4j.evaluation.classification.Evaluation> task = new Task<org.nd4j.evaluation.classification.Evaluation>() {
             @Override
             protected org.nd4j.evaluation.classification.Evaluation call() throws Exception {
+
+                Pair<DataSetIterator, DataSetIterator> iterators = createDataIterators();
+
+                MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder()
+                        .seed(123)
+                        .l2(0.0005) // ridge regression value
+                        .updater(new Nesterovs(Double.parseDouble(learningRateTextField.getText()), 0.9)) //0.006              
+                        .weightInit(WeightInit.XAVIER)
+                        .list()
+                        .layer(new ConvolutionLayer.Builder(3, 3)
+                                .nIn(CHANNELS)
+                                .stride(1, 1)
+                                .nOut(50)
+                                .activation(Activation.RELU)
+                                .build())
+                        .layer(new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
+                                .kernelSize(2, 2)
+                                .stride(2, 2)
+                                .build())
+                        .layer(new ConvolutionLayer.Builder(3, 3)
+                                .stride(1, 1) // nIn need not specified in later layers
+                                .nOut(50)
+                                .activation(Activation.RELU)
+                                .build())
+                        .layer(new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
+                                .kernelSize(2, 2)
+                                .stride(2, 2)
+                                .build())
+                        .layer(new DenseLayer.Builder().activation(Activation.RELU)
+                                .nOut(500)
+                                .build())
+                        .layer(new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
+                                .nOut(N_OUTCOMES)
+                                .activation(Activation.SOFTMAX)
+                                .build())
+                        .setInputType(InputType.convolutionalFlat(HEIGHT, WIDTH, CHANNELS)) // InputType.convolutional for normal image
+                        .build();
+
+                System.out.println(configuration.toJson());
+
                 MultiLayerNetwork model = new MultiLayerNetwork(configuration);
                 model.init();
                 model.setListeners(new ScoreIterationListener(100));
@@ -337,7 +370,7 @@ public class MainController {
                 UIServer uiServer = UIServer.getInstance();
                 //Configure where the network information (gradients, score vs. time etc) is to be stored. Here: store in memory.
                 //StatsStorage statsStorage = new InMemoryStatsStorage();         //Alternative: new FileStatsStorage(File), for saving and loading later
-                StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+                statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
                 int listenerFrequency = 1;
                 model.setListeners(new StatsListener(statsStorage, listenerFrequency));
                 //Attach the StatsStorage instance to the UI: this allows the contents of the StatsStorage to be visualized
@@ -356,6 +389,7 @@ public class MainController {
         };
         task.setOnSucceeded(e -> {
             org.nd4j.evaluation.classification.Evaluation evaluation = task.getValue();
+            accuracyText.set(evaluation.accuracy());
             System.out.println(evaluation.stats());
             System.out.println(evaluation.confusionToString());
             stopClock();
@@ -368,6 +402,13 @@ public class MainController {
 
     }
 
+    /**
+     * Used to test how well the model generalizes against new samples.
+     * 
+     * @param image
+     * @return
+     * @throws IOException 
+     */
     public static INDArray classify(BufferedImage image) throws IOException {
 
         final int HEIGHT = 32;
@@ -387,6 +428,13 @@ public class MainController {
         return output;
     }
 
+    /**
+     * For data preprocessing.
+     *
+     * Last Update: 2022-08-18
+     *
+     * @return
+     */
     private Pair<DataSetIterator, DataSetIterator> createDataIterators() {
 
         String dataPath = "/home/brianj/Pictures/images";
@@ -400,7 +448,7 @@ public class MainController {
         int numInput = height * width;
 
         int numLabels = 2;
-                       
+
         File parentDir = new File(dataPath);
         FileSplit filesInDir = new FileSplit(parentDir, NativeImageLoader.ALLOWED_FORMATS);
         ParentPathLabelGenerator labelMaker = new ParentPathLabelGenerator();
@@ -465,7 +513,7 @@ public class MainController {
                 .ifPresent(response -> {
                     if (timer != null) {
                         timer.cancel();
-                    }                
+                    }
                     Platform.exit();
                     System.exit(0);
                 });

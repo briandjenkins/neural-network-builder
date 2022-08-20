@@ -52,15 +52,24 @@
                               </HBox>
                            </top>
                            <center>
-                              <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                              <VBox alignment="CENTER" BorderPane.alignment="CENTER">
                                  <children>
-                                    <Label fx:id="elapsedTimeLabel" styleClass="elapsed-time-label" text="Not Running">
-                                       <graphic>
-                                          <FontIcon fx:id="elapsedTimeFontIcon" styleClass="finished-font-icon" />
-                                       </graphic>
-                                    </Label>
+                                    <HBox alignment="TOP_CENTER" prefWidth="200.0">
+                                       <children>
+                                          <Label fx:id="elapsedTimeLabel" styleClass="elapsed-time-label" text="Not Running">
+                                             <graphic>
+                                                <FontIcon fx:id="elapsedTimeFontIcon" styleClass="finished-font-icon" />
+                                             </graphic>
+                                          </Label>
+                                       </children>
+                                    </HBox>
+                                    <HBox alignment="TOP_CENTER" layoutX="10.0" layoutY="10.0" prefWidth="200.0">
+                                       <children>
+                                          <Label fx:id="accuracyLabel" styleClass="elapsed-time-label" />
+                                       </children>
+                                    </HBox>
                                  </children>
-                              </HBox>
+                              </VBox>
                            </center>
                         </BorderPane>
                      </children>
