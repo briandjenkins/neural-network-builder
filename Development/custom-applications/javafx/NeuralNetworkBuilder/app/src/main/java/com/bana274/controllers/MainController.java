@@ -5,14 +5,29 @@
 package com.bana274.controllers;
 
 import com.bana274.Main;
+import static com.bana274.utilities.AppUtils.ofMimeMultipartData;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,6 +40,8 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -70,8 +87,6 @@ import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.api.UIServer;
-import org.deeplearning4j.ui.model.stats.StatsListener;
-import org.deeplearning4j.ui.model.storage.FileStatsStorage;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -82,9 +97,8 @@ import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 /**
- * Version: 1.1.0
- * Last Update: 2022-08-19
- * 
+ * Version: 1.1.0 Last Update: 2022-08-19
+ *
  *
  * @author brianj
  */
@@ -102,17 +116,24 @@ public class MainController {
     private BooleanProperty finishedIconVisible = new SimpleBooleanProperty(false);
     private DoubleProperty accuracyText = new SimpleDoubleProperty();
     private ObjectBinding<Node> frontNode;
+    private StringProperty classificationText = new SimpleStringProperty();
 
     @FXML
     private AnchorPane viewContainerAnchorPane;
     @FXML
     private AnchorPane overlayAnchorPane;
     @FXML
+    private AnchorPane classifyingOverlayAnchorPane;
+    @FXML
+    private AnchorPane classifiedOverlayAnchorPane;
+    @FXML
     private StackPane mainStackPane;
     @FXML
     private Label elapsedTimeLabel;
     @FXML
     private Label accuracyLabel;
+    @FXML
+    private Label classificationLabel;
     @FXML
     private TextField epochsTextField;
     @FXML
@@ -126,7 +147,13 @@ public class MainController {
     @FXML
     private Button closeOverlayButton;
     @FXML
+    private Button closeClassifierOverlayButton;
+    @FXML
+    private Button closeClassifiedOverlayButton;
+    @FXML
     private ImageView mainBackgroundImageView;
+    @FXML
+    private ImageView classifiedGenderImageView;
     @FXML
     private FontIcon elapsedTimeFontIcon;
 
@@ -156,12 +183,15 @@ public class MainController {
     private void initActions() {
         classifyButton.setOnAction(this::selectImageAndClassify);
         createModelButton.setOnAction(this::buildCNNModel);
-        closeOverlayButton.setOnAction(this::closeOverlay);
+        closeOverlayButton.setOnAction(this::closeTrainingOverlay);
+        closeClassifierOverlayButton.setOnAction(this::closeClassifyingOverlay);
+        closeClassifiedOverlayButton.setOnAction(this::closeClassifiedOverlay);
     }
 
     private void initBindings() {
         elapsedTimeFontIcon.visibleProperty().bind(finishedIconVisible);
-        accuracyLabel.textProperty().bind(Bindings.format("%s", accuracyText));
+        accuracyLabel.textProperty().bind(Bindings.format("%.2f%%", accuracyText));
+        classificationLabel.textProperty().bind(classificationText);
     }
 
     private void installAnimation(StackPane root) {
@@ -273,30 +303,48 @@ public class MainController {
         timer.cancel();
     }
 
-    private void closeOverlay(ActionEvent evt) {
+    private void closeTrainingOverlay(ActionEvent evt) {
         overlayAnchorPane.toBack();
     }
 
+    private void closeClassifyingOverlay(ActionEvent evt) {
+        classifyingOverlayAnchorPane.toBack();
+    }
+
+    private void closeClassifiedOverlay(ActionEvent evt) {
+        classifiedOverlayAnchorPane.toBack();
+    }
+
     private void selectImageAndClassify(ActionEvent evt) {
-        try {
-            File selectedFile = fileChooser.showOpenDialog(mainStackPane.getScene().getWindow());
-            if (selectedFile != null) {
-                classify(null);
+
+        File selectedFile = fileChooser.showOpenDialog(mainStackPane.getScene().getWindow());
+        if (selectedFile != null) {
+            try {
+                classificationText.set("");
+                classifyingOverlayAnchorPane.toFront();
+                postImageToClassifier(selectedFile);
+            } catch (IOException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (URISyntaxException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ExecutionException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (TimeoutException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } catch (IOException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     /**
      * CNN Model Related Methods
-     * 
+     *
      */
-    
     /**
      * Configure and train the model.
-     * 
-     * @param evt 
+     *
+     * @param evt
      */
     private void buildCNNModel(ActionEvent evt) {
         overlayAnchorPane.toFront();
@@ -367,14 +415,14 @@ public class MainController {
                  * URL: http://localhost:9000/train/overview
                  */
                 //Initialize the user interface backend
-                UIServer uiServer = UIServer.getInstance();
+//                UIServer uiServer = UIServer.getInstance();
                 //Configure where the network information (gradients, score vs. time etc) is to be stored. Here: store in memory.
                 //StatsStorage statsStorage = new InMemoryStatsStorage();         //Alternative: new FileStatsStorage(File), for saving and loading later
-                statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
-                int listenerFrequency = 1;
-                model.setListeners(new StatsListener(statsStorage, listenerFrequency));
+//                statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+//                int listenerFrequency = 1;
+//                model.setListeners(new StatsListener(statsStorage, listenerFrequency));
                 //Attach the StatsStorage instance to the UI: this allows the contents of the StatsStorage to be visualized
-                uiServer.attach(statsStorage);
+//                uiServer.attach(statsStorage);
                 model.fit(iterators.getKey(), N_EPOCHS);
 
                 org.nd4j.evaluation.classification.Evaluation evaluation = model.evaluate(iterators.getValue());
@@ -403,32 +451,6 @@ public class MainController {
     }
 
     /**
-     * Used to test how well the model generalizes against new samples.
-     * 
-     * @param image
-     * @return
-     * @throws IOException 
-     */
-    public static INDArray classify(BufferedImage image) throws IOException {
-
-        final int HEIGHT = 32;
-        final int WIDTH = 32;
-        final int CHANNELS = 3;
-
-        image = ImageIO.read(new File("/home/brianj/Pictures/images/female/131437.jpg.jpg"));
-
-        String modelFile = "gender_cnn_model.zip";
-        MultiLayerNetwork classifier = MultiLayerNetwork.load(new File(modelFile), false);
-
-        ImageLoader loader = new ImageLoader(WIDTH, HEIGHT, CHANNELS);
-        INDArray input = loader.asMatrix(image).reshape(1, 3, 32, 32);
-        INDArray output = classifier.output(input);
-
-        System.out.println(output);
-        return output;
-    }
-
-    /**
      * For data preprocessing.
      *
      * Last Update: 2022-08-18
@@ -444,8 +466,6 @@ public class MainController {
         int batchSize = Integer.parseInt(minibatchSizeTextField.getText());
         int height = 32;
         int width = 32;
-        int channels = 3;
-        int numInput = height * width;
 
         int numLabels = 2;
 
@@ -483,6 +503,65 @@ public class MainController {
         testIter.setPreProcessor(testImageScaler);
 
         return new Pair<DataSetIterator, DataSetIterator>(trainIter, testIter);
+    }
+
+    /**
+     * Used to test how well the model generalizes against new samples.
+     *
+     * @param image
+     * @return
+     * @throws IOException
+     */
+    public static INDArray classify(BufferedImage image) throws IOException {
+
+        final int HEIGHT = 32;
+        final int WIDTH = 32;
+        final int CHANNELS = 3;
+
+        image = ImageIO.read(new File("/home/brianj/Pictures/images/female/131437.jpg.jpg"));
+
+        String modelFile = "gender_cnn_model.zip";
+        MultiLayerNetwork classifier = MultiLayerNetwork.load(new File(modelFile), false);
+
+        ImageLoader loader = new ImageLoader(WIDTH, HEIGHT, CHANNELS);
+        INDArray input = loader.asMatrix(image).reshape(1, 3, 32, 32);
+        INDArray output = classifier.output(input);
+
+        System.out.println(output);
+        return output;
+    }
+
+    private void postImageToClassifier(File file) throws IOException, URISyntaxException, InterruptedException, ExecutionException, TimeoutException {
+
+        // Random 256 length string is used as multipart boundary
+        String boundary = new BigInteger(256, new Random()).toString();
+        Map<Object, Object> data = new LinkedHashMap<>();
+        data.put("image", file.toPath());
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI("http://gender-classifier-rest-service.herokuapp.com/upload/image"))
+                .headers("Content-Type", "multipart/form-data; boundary=" + boundary)
+                .POST(ofMimeMultipartData(data, boundary))
+                .build();
+        CompletableFuture<HttpResponse<String>> response = HttpClient.newBuilder()
+                .build()
+                .sendAsync(request, HttpResponse.BodyHandlers.ofString());
+        response.thenApply(HttpResponse::body).thenAccept(r -> {
+            try {
+                HashMap<String, Object> result = new ObjectMapper().readValue(r, HashMap.class);
+                Platform.runLater(() -> {
+                    classificationText.set(result.get("gender").toString());
+                    if (result.get("gender").toString().equals("male")) {
+                        classifiedGenderImageView.setImage(new Image(getClass().getResource("/com/bana274/male.png").toExternalForm()));
+                    } else {
+                        classifiedGenderImageView.setImage(new Image(getClass().getResource("/com/bana274/female.png").toExternalForm()));
+                    }
+                    
+                    classifiedOverlayAnchorPane.toFront();
+                });
+            } catch (JsonProcessingException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
     }
 
     /**

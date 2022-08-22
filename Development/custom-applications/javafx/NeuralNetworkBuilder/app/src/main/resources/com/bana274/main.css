@@ -11,6 +11,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     -fx-focus-color:  -custom-focus-color;
     -fx-faint-focus-color: #039ED322;
     -custom-overlay-color: rgba(0,0,0,.9);
+
 }
 
 .main-footer-container-hbox {
@@ -75,6 +76,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
 
 .progress-overlay {
     -fx-background-color: -custom-overlay-color;
+}
+
+.classification-image-container {
+    -fx-background-color: -custom-background-color;
 }
 
 
